@@ -945,7 +945,16 @@
         .then(function () { showToast('다운로드했어요'); })
         .catch(function () { showToast('다운로드가 취소됐어요'); });
     } else {
-      showToast('다운로드를 사용할 수 없어요');
+      var blob = new Blob([data], { type: 'application/json' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = 'audit-quiz-questions.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast('다운로드했어요');
     }
   }
 
