@@ -348,10 +348,58 @@
   .manage-item {
     border: 1px solid var(--border);
     border-radius: 12px;
-    padding: 16px;
-    margin-bottom: 12px;
+    padding: 10px 14px;
+    margin-bottom: 8px;
     background: var(--card);
   }
+  .manage-item.expanded { padding: 14px 16px 16px; }
+  .manage-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .manage-num {
+    flex: 0 0 auto;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-dim);
+    min-width: 26px;
+  }
+  .manage-preview {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: 14px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .manage-move {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+  }
+  .move-goto {
+    font-size: 12px;
+    color: var(--text-dim);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .f-goto {
+    width: 46px;
+    font-family: inherit;
+    font-size: 13px;
+    color: var(--text);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 4px 6px;
+    text-align: center;
+  }
+  .btn.sm { padding: 5px 10px; font-size: 12px; }
+  .manage-detail { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border); }
   .field-label {
     font-size: 12px;
     font-weight: 700;
@@ -483,6 +531,7 @@
   var questions = loadQuestions();
   var progress = loadProgress();
   var currentIndex = 0;
+  var expandedIds = {};
 
   function nextId() {
     var max = 0;
@@ -677,19 +726,35 @@
     }
 
     questions.forEach(function (q, idx) {
-      html += '<div class="manage-item" data-id="' + q.id + '">';
-      html += '<p class="field-label">분류(선택)</p>';
-      html += '<input type="text" class="f-category" value="' + escapeHtml(q.category || '') + '" placeholder="예: 감사기준서 200" />';
-      html += '<p class="field-label">문제</p>';
-      html += '<textarea class="f-question">' + escapeHtml(q.question) + '</textarea>';
-      html += '<p class="field-label">정답</p>';
-      html += '<textarea class="f-answer">' + escapeHtml(q.answer) + '</textarea>';
-      html += '<div class="manage-actions">';
-      html += '<button class="btn ghost" data-action="up"' + (idx === 0 ? ' disabled' : '') + '>&uarr; 위로</button>';
-      html += '<button class="btn ghost" data-action="down"' + (idx === questions.length - 1 ? ' disabled' : '') + '>&darr; 아래로</button>';
-      html += '<button class="btn danger" data-action="delete">삭제</button>';
-      html += '<button class="btn primary" data-action="save">저장</button>';
+      var expanded = !!expandedIds[q.id];
+      html += '<div class="manage-item' + (expanded ? ' expanded' : '') + '" data-id="' + q.id + '">';
+      html += '<div class="manage-row">';
+      html += '<span class="manage-num">#' + (idx + 1) + '</span>';
+      html += '<span class="manage-preview">' + escapeHtml(truncate(q.question || '(빈 문제)', 34)) + '</span>';
+      html += '<button class="btn ghost sm" data-action="toggle">' + (expanded ? '접기' : '수정') + '</button>';
       html += '</div>';
+
+      html += '<div class="manage-move">';
+      html += '<button class="btn ghost sm" data-action="up"' + (idx === 0 ? ' disabled' : '') + '>&uarr;</button>';
+      html += '<button class="btn ghost sm" data-action="down"' + (idx === questions.length - 1 ? ' disabled' : '') + '>&darr;</button>';
+      html += '<span class="move-goto">번호 이동 <input type="text" inputmode="numeric" class="f-goto" value="' + (idx + 1) + '" /></span>';
+      html += '<button class="btn ghost sm" data-action="goto">이동</button>';
+      html += '<button class="btn danger sm" data-action="delete" style="margin-left:auto">삭제</button>';
+      html += '</div>';
+
+      if (expanded) {
+        html += '<div class="manage-detail">';
+        html += '<p class="field-label">분류(선택)</p>';
+        html += '<input type="text" class="f-category" value="' + escapeHtml(q.category || '') + '" placeholder="예: 감사기준서 200" />';
+        html += '<p class="field-label">문제</p>';
+        html += '<textarea class="f-question">' + escapeHtml(q.question) + '</textarea>';
+        html += '<p class="field-label">정답</p>';
+        html += '<textarea class="f-answer">' + escapeHtml(q.answer) + '</textarea>';
+        html += '<div class="manage-actions">';
+        html += '<button class="btn primary" data-action="save">저장</button>';
+        html += '</div>';
+        html += '</div>';
+      }
       html += '</div>';
     });
 
@@ -699,7 +764,10 @@
       var q = { id: nextId(), category: '', question: '', answer: '' };
       questions.push(q);
       saveQuestions(questions);
+      focusItem(q.id);
       renderManage();
+      var el2 = document.querySelector('.manage-item[data-id="' + q.id + '"]');
+      if (el2) el2.scrollIntoView({ block: 'center' });
     };
     document.getElementById('exportBtn').onclick = function () {
       exportQuestions();
@@ -710,7 +778,14 @@
 
     el.querySelectorAll('.manage-item').forEach(function (item) {
       var id = Number(item.getAttribute('data-id'));
-      item.querySelector('[data-action="save"]').onclick = function () {
+      var toggleBtn = item.querySelector('[data-action="toggle"]');
+      if (toggleBtn) toggleBtn.onclick = function () {
+        if (expandedIds[id]) delete expandedIds[id];
+        else focusItem(id);
+        renderManage();
+      };
+      var saveBtn = item.querySelector('[data-action="save"]');
+      if (saveBtn) saveBtn.onclick = function () {
         var q = questions.find(function (x) { return x.id === id; });
         if (!q) return;
         q.category = item.querySelector('.f-category').value.trim();
@@ -718,11 +793,13 @@
         q.answer = item.querySelector('.f-answer').value.trim();
         saveQuestions(questions);
         showToast('저장했어요');
+        renderManage();
       };
       item.querySelector('[data-action="delete"]').onclick = function () {
         if (!confirm('이 문제를 삭제할까요?')) return;
         questions = questions.filter(function (x) { return x.id !== id; });
         delete progress[id];
+        delete expandedIds[id];
         saveQuestions(questions);
         saveProgress(progress);
         renderManage();
@@ -731,7 +808,23 @@
       var downBtn = item.querySelector('[data-action="down"]');
       if (upBtn) upBtn.onclick = function () { moveQuestion(id, -1); };
       if (downBtn) downBtn.onclick = function () { moveQuestion(id, 1); };
+      var gotoBtn = item.querySelector('[data-action="goto"]');
+      if (gotoBtn) gotoBtn.onclick = function () {
+        var val = parseInt(item.querySelector('.f-goto').value, 10);
+        if (!val) return;
+        moveQuestionTo(id, val);
+      };
     });
+  }
+
+  function focusItem(id) {
+    var idx = questions.findIndex(function (x) { return x.id === id; });
+    if (idx < 0) return;
+    var ids = [id];
+    if (idx > 0) ids.push(questions[idx - 1].id);
+    if (idx < questions.length - 1) ids.push(questions[idx + 1].id);
+    expandedIds = {};
+    ids.forEach(function (i) { expandedIds[i] = true; });
   }
 
   function moveQuestion(id, delta) {
@@ -741,6 +834,17 @@
     var tmp = questions[idx];
     questions[idx] = questions[newIdx];
     questions[newIdx] = tmp;
+    saveQuestions(questions);
+    renderManage();
+  }
+
+  function moveQuestionTo(id, targetPos) {
+    var idx = questions.findIndex(function (x) { return x.id === id; });
+    if (idx < 0) return;
+    var target = Math.min(Math.max(targetPos - 1, 0), questions.length - 1);
+    if (target === idx) return;
+    var item = questions.splice(idx, 1)[0];
+    questions.splice(target, 0, item);
     saveQuestions(questions);
     renderManage();
   }
