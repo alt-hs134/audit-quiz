@@ -854,6 +854,9 @@
 
     el.innerHTML = html;
 
+    var activeListItem = el.querySelector('.q-list-item.active');
+    if (activeListItem) activeListItem.scrollIntoView({ block: 'nearest' });
+
     function saveDraft() {
       var input = document.getElementById('answerInput');
       if (!input) return;
