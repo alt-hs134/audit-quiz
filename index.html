@@ -751,6 +751,7 @@
         html += '<p class="field-label">정답</p>';
         html += '<textarea class="f-answer">' + escapeHtml(q.answer) + '</textarea>';
         html += '<div class="manage-actions">';
+        html += '<button class="btn ghost" data-action="add-next">+ 다음 문제 추가</button>';
         html += '<button class="btn primary" data-action="save">저장</button>';
         html += '</div>';
         html += '</div>';
@@ -758,17 +759,15 @@
       html += '</div>';
     });
 
+    if (questions.length) {
+      html += '<div class="toolbar"><button class="btn primary" id="addBtnBottom">+ 새 문제 추가</button></div>';
+    }
+
     el.innerHTML = html;
 
-    document.getElementById('addBtn').onclick = function () {
-      var q = { id: nextId(), category: '', question: '', answer: '' };
-      questions.push(q);
-      saveQuestions(questions);
-      focusItem(q.id);
-      renderManage();
-      var el2 = document.querySelector('.manage-item[data-id="' + q.id + '"]');
-      if (el2) el2.scrollIntoView({ block: 'center' });
-    };
+    document.getElementById('addBtn').onclick = function () { insertQuestionAfter(null); };
+    var addBtnBottom = document.getElementById('addBtnBottom');
+    if (addBtnBottom) addBtnBottom.onclick = function () { insertQuestionAfter(null); };
     document.getElementById('exportBtn').onclick = function () {
       exportQuestions();
     };
@@ -786,14 +785,16 @@
       };
       var saveBtn = item.querySelector('[data-action="save"]');
       if (saveBtn) saveBtn.onclick = function () {
-        var q = questions.find(function (x) { return x.id === id; });
-        if (!q) return;
-        q.category = item.querySelector('.f-category').value.trim();
-        q.question = item.querySelector('.f-question').value.trim();
-        q.answer = item.querySelector('.f-answer').value.trim();
+        saveFields(item, id);
         saveQuestions(questions);
         showToast('저장했어요');
         renderManage();
+      };
+      var addNextBtn = item.querySelector('[data-action="add-next"]');
+      if (addNextBtn) addNextBtn.onclick = function () {
+        saveFields(item, id);
+        saveQuestions(questions);
+        insertQuestionAfter(id);
       };
       item.querySelector('[data-action="delete"]').onclick = function () {
         if (!confirm('이 문제를 삭제할까요?')) return;
@@ -815,6 +816,35 @@
         moveQuestionTo(id, val);
       };
     });
+  }
+
+  function saveFields(item, id) {
+    var q = questions.find(function (x) { return x.id === id; });
+    if (!q) return;
+    q.category = item.querySelector('.f-category').value.trim();
+    q.question = item.querySelector('.f-question').value.trim();
+    q.answer = item.querySelector('.f-answer').value.trim();
+  }
+
+  function scrollToItem(id) {
+    var elx = document.querySelector('.manage-item[data-id="' + id + '"]');
+    if (elx) elx.scrollIntoView({ block: 'center' });
+  }
+
+  function insertQuestionAfter(afterId) {
+    var insertAt;
+    if (afterId == null) {
+      insertAt = questions.length;
+    } else {
+      var idx = questions.findIndex(function (x) { return x.id === afterId; });
+      insertAt = idx < 0 ? questions.length : idx + 1;
+    }
+    var q = { id: nextId(), category: '', question: '', answer: '' };
+    questions.splice(insertAt, 0, q);
+    saveQuestions(questions);
+    focusItem(q.id);
+    renderManage();
+    scrollToItem(q.id);
   }
 
   function focusItem(id) {
