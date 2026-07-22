@@ -1,0 +1,792 @@
+<title>감Quiz</title>
+<style>
+  :root {
+    --bg: #f7f8fa;
+    --card: #ffffff;
+    --border: #e2e5ea;
+    --text: #1b1e24;
+    --text-dim: #6b7280;
+    --accent: #2f6feb;
+    --accent-dim: #e8f0fe;
+    --wrong: #d1364a;
+    --wrong-bg: #fdecee;
+    --good: #1a8f5c;
+    --good-bg: #e8f7ef;
+    --shadow: 0 1px 2px rgba(16,24,40,.04), 0 1px 3px rgba(16,24,40,.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #16181d;
+      --card: #1e2128;
+      --border: #33373f;
+      --text: #e7e9ec;
+      --text-dim: #9aa0aa;
+      --accent: #6c9bff;
+      --accent-dim: #26314a;
+      --wrong: #ff7285;
+      --wrong-bg: #3a1f26;
+      --good: #4fd399;
+      --good-bg: #163c2c;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 1px 3px rgba(0,0,0,.3);
+    }
+  }
+  :root[data-theme="light"] {
+    --bg: #f7f8fa; --card: #ffffff; --border: #e2e5ea; --text: #1b1e24; --text-dim: #6b7280;
+    --accent: #2f6feb; --accent-dim: #e8f0fe; --wrong: #d1364a; --wrong-bg: #fdecee;
+    --good: #1a8f5c; --good-bg: #e8f7ef;
+  }
+  :root[data-theme="dark"] {
+    --bg: #16181d; --card: #1e2128; --border: #33373f; --text: #e7e9ec; --text-dim: #9aa0aa;
+    --accent: #6c9bff; --accent-dim: #26314a; --wrong: #ff7285; --wrong-bg: #3a1f26;
+    --good: #4fd399; --good-bg: #163c2c;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Pretendard, "Malgun Gothic", Roboto, sans-serif;
+    line-height: 1.55;
+  }
+  .wrap {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 28px 20px 80px;
+  }
+  header.top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+  }
+  h1 {
+    font-size: 20px;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .tabs {
+    display: flex;
+    gap: 6px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 4px;
+    box-shadow: var(--shadow);
+  }
+  .tab-btn {
+    border: none;
+    background: transparent;
+    color: var(--text-dim);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 7px 14px;
+    border-radius: 7px;
+    cursor: pointer;
+  }
+  .tab-btn.active {
+    background: var(--accent);
+    color: #fff;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 22px;
+    box-shadow: var(--shadow);
+    margin-bottom: 16px;
+  }
+  .progress-line {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-bottom: 14px;
+  }
+  .cat-badge {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--accent);
+    background: var(--accent-dim);
+    padding: 3px 9px;
+    border-radius: 999px;
+    margin-bottom: 10px;
+  }
+  .q-text {
+    font-size: 17px;
+    font-weight: 700;
+    margin: 0 0 16px;
+    white-space: pre-wrap;
+  }
+  textarea {
+    width: 100%;
+    min-height: 110px;
+    resize: vertical;
+    font-family: inherit;
+    font-size: 14.5px;
+    color: var(--text);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+    line-height: 1.6;
+  }
+  textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .btn-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+  }
+  button {
+    font-family: inherit;
+    cursor: pointer;
+  }
+  .btn {
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--text);
+    font-size: 13.5px;
+    font-weight: 600;
+    padding: 9px 16px;
+    border-radius: 9px;
+  }
+  .btn.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+  .btn.ghost {
+    background: transparent;
+  }
+  .btn.danger {
+    color: var(--wrong);
+    border-color: var(--wrong);
+    background: transparent;
+  }
+  .btn:disabled { opacity: .45; cursor: not-allowed; }
+  .nav-row {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 16px;
+    gap: 8px;
+  }
+  .result {
+    margin-top: 18px;
+    padding-top: 16px;
+    border-top: 1px dashed var(--border);
+  }
+  .result-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .score-badge {
+    font-size: 13px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 999px;
+  }
+  .score-badge.good { color: var(--good); background: var(--good-bg); }
+  .score-badge.bad { color: var(--wrong); background: var(--wrong-bg); }
+  .label {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: .03em;
+    margin: 14px 0 6px;
+  }
+  .diff-box, .answer-box {
+    font-size: 14.5px;
+    padding: 12px;
+    border-radius: 10px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .diff-box .wrong {
+    color: var(--wrong);
+    background: var(--wrong-bg);
+    border-radius: 3px;
+    text-decoration: underline wavy var(--wrong);
+    text-underline-offset: 2px;
+  }
+  .answer-box { color: var(--good); border-color: var(--good); background: var(--good-bg); }
+  .stats-line {
+    font-size: 12.5px;
+    color: var(--text-dim);
+    margin-bottom: 14px;
+  }
+  .empty {
+    text-align: center;
+    color: var(--text-dim);
+    padding: 40px 10px;
+  }
+  /* solve layout: question list + main card */
+  .solve-layout {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  .q-list {
+    flex: 0 0 220px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 640px;
+    overflow-y: auto;
+    padding-right: 2px;
+  }
+  .q-main { flex: 1 1 auto; min-width: 0; }
+  .q-list-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    text-align: left;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    padding: 9px 10px;
+    font-size: 13px;
+    color: var(--text);
+  }
+  .q-list-item.active {
+    border-color: var(--accent);
+    background: var(--accent-dim);
+    font-weight: 600;
+  }
+  .q-list-num {
+    flex: 0 0 auto;
+    color: var(--text-dim);
+    font-size: 12px;
+    font-weight: 700;
+    min-width: 16px;
+  }
+  .q-list-text {
+    flex: 1 1 auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .q-list-score {
+    flex: 0 0 auto;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 999px;
+  }
+  .q-list-score.good { color: var(--good); background: var(--good-bg); }
+  .q-list-score.bad { color: var(--wrong); background: var(--wrong-bg); }
+  @media (max-width: 680px) {
+    .solve-layout { flex-direction: column; }
+    .q-list {
+      flex-direction: row;
+      flex-wrap: nowrap;
+      width: 100%;
+      max-height: none;
+      overflow-x: auto;
+      overflow-y: visible;
+    }
+    .q-list-item { flex: 0 0 auto; width: auto; }
+    .q-list-text { max-width: 140px; }
+  }
+  /* home view */
+  .home-hero {
+    min-height: 60vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 6px;
+    padding: 40px 20px;
+  }
+  .home-icon { font-size: 44px; margin-bottom: 6px; }
+  .home-title {
+    font-size: 34px;
+    font-weight: 800;
+    margin: 0;
+    letter-spacing: -.02em;
+  }
+  .home-sub {
+    color: var(--text-dim);
+    font-size: 14.5px;
+    margin: 6px 0 26px;
+  }
+  .btn.big {
+    font-size: 16px;
+    padding: 14px 40px;
+    border-radius: 12px;
+  }
+  .home-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+  .back-link {
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 6px 2px;
+    margin-bottom: 4px;
+  }
+  /* manage view */
+  .manage-item {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+    background: var(--card);
+  }
+  .field-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-dim);
+    margin: 0 0 4px;
+  }
+  input[type=text] {
+    width: 100%;
+    font-family: inherit;
+    font-size: 13.5px;
+    color: var(--text);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 10px;
+    margin-bottom: 10px;
+  }
+  .manage-item textarea { min-height: 64px; margin-bottom: 10px; }
+  .manage-actions { display: flex; gap: 8px; justify-content: flex-end; }
+  .toolbar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--text);
+    color: var(--bg);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 10px 18px;
+    border-radius: 999px;
+    box-shadow: var(--shadow);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .2s ease;
+    z-index: 50;
+  }
+  .toast.show { opacity: 1; }
+  #importFile { display: none; }
+</style>
+
+<div class="wrap">
+  <header class="top" id="topHeader" style="display:none">
+    <h1 id="headerTitle" style="cursor:pointer">📋 감Quiz</h1>
+    <div class="tabs">
+      <button class="tab-btn" data-tab="solve">풀기</button>
+      <button class="tab-btn" data-tab="manage">문제 관리</button>
+    </div>
+  </header>
+
+  <div id="homeView">
+    <div class="home-hero">
+      <div class="home-icon">📋</div>
+      <h1 class="home-title">감Quiz</h1>
+      <p class="home-sub">감사기준서 개념을 직접 입력하며 외우는 퀴즈</p>
+      <div class="home-actions">
+        <button class="btn primary big" id="goQuizBtn">퀴즈</button>
+        <button class="btn ghost" id="goManageBtn">문제 관리</button>
+      </div>
+    </div>
+  </div>
+  <div id="solveView" style="display:none"></div>
+  <div id="manageView" style="display:none"></div>
+</div>
+
+<input type="file" id="importFile" accept="application/json" />
+<div class="toast" id="toast"></div>
+
+<script>
+(function () {
+  var STORAGE_KEY = 'auditQuiz.questions.v1';
+  var PROGRESS_KEY = 'auditQuiz.progress.v1';
+
+  var seedQuestions = [
+    {
+      id: 1,
+      category: '감사기준서 200',
+      question: '전문가적 의구심의 정의는?',
+      answer: '전문가적 의구심이란 오류나 부정으로 인한 왜곡표시 가능성을 나타내는 상황에 유의하면서, 감사증거를 비판적으로 평가하는 질문적 태도를 포함하는 자세를 말한다.'
+    },
+    {
+      id: 2,
+      category: '감사기준서 200',
+      question: '감사위험의 정의는?',
+      answer: '감사위험이란 중요하게 왜곡표시된 재무제표에 대하여 감사인이 부적합한 감사의견을 표명할 위험을 말한다.'
+    },
+    {
+      id: 3,
+      category: '감사기준서 320',
+      question: '중요성(materiality)의 정의는?',
+      answer: '중요성이란 개별적으로 또는 집합적으로 재무제표를 근거로 이루어지는 정보이용자의 경제적 의사결정에 영향을 줄 것으로 합리적으로 기대되는 왜곡표시(누락 포함)의 정도를 말한다.'
+    },
+    {
+      id: 4,
+      category: '감사기준서 500',
+      question: '감사증거의 정의는?',
+      answer: '감사증거란 감사인이 감사의견의 근거가 되는 결론을 도출하기 위하여 사용하는 정보를 말하며, 재무제표의 근거가 되는 회계기록에 포함된 정보와 기타 정보를 포함한다.'
+    }
+  ];
+
+  function loadQuestions() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return seedQuestions.slice();
+      var parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed) || !parsed.length) return seedQuestions.slice();
+      return parsed;
+    } catch (e) {
+      return seedQuestions.slice();
+    }
+  }
+  function saveQuestions(list) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+  }
+  function loadProgress() {
+    try {
+      return JSON.parse(localStorage.getItem(PROGRESS_KEY)) || {};
+    } catch (e) { return {}; }
+  }
+  function saveProgress(p) {
+    localStorage.setItem(PROGRESS_KEY, JSON.stringify(p));
+  }
+
+  var questions = loadQuestions();
+  var progress = loadProgress();
+  var currentIndex = 0;
+
+  function nextId() {
+    var max = 0;
+    questions.forEach(function (q) { if (q.id > max) max = q.id; });
+    return max + 1;
+  }
+
+  function escapeHtml(s) {
+    return s.replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function truncate(s, n) {
+    return s.length > n ? s.slice(0, n - 1) + '…' : s;
+  }
+
+  // character-level LCS diff: chars in `user` not part of the common subsequence with `correct` are marked wrong
+  function diffChars(user, correct) {
+    var n = user.length, m = correct.length;
+    var dp = [];
+    for (var i = 0; i <= n; i++) dp.push(new Array(m + 1).fill(0));
+    for (i = n - 1; i >= 0; i--) {
+      for (var j = m - 1; j >= 0; j--) {
+        dp[i][j] = user[i] === correct[j] ? dp[i + 1][j + 1] + 1 : Math.max(dp[i + 1][j], dp[i][j + 1]);
+      }
+    }
+    var segs = [];
+    var ii = 0, jj = 0;
+    function push(ch, ok) {
+      if (segs.length && segs[segs.length - 1].ok === ok) segs[segs.length - 1].text += ch;
+      else segs.push({ text: ch, ok: ok });
+    }
+    while (ii < n && jj < m) {
+      if (user[ii] === correct[jj]) { push(user[ii], true); ii++; jj++; }
+      else if (dp[ii + 1][jj] >= dp[ii][jj + 1]) { push(user[ii], false); ii++; }
+      else { jj++; }
+    }
+    while (ii < n) { push(user[ii], false); ii++; }
+    var lcsLen = dp[0] && dp[0][0] || 0;
+    var score = (n + m) === 0 ? 100 : Math.round((2 * lcsLen / (n + m)) * 100);
+    return { segs: segs, score: score };
+  }
+
+  function renderDiffHtml(segs) {
+    return segs.map(function (s) {
+      var esc = escapeHtml(s.text);
+      return s.ok ? esc : '<span class="wrong">' + esc + '</span>';
+    }).join('');
+  }
+
+  function showToast(msg) {
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(function () { t.classList.remove('show'); }, 1800);
+  }
+
+  // ---------- solve view ----------
+  function renderSolve() {
+    var el = document.getElementById('solveView');
+    if (!questions.length) {
+      el.innerHTML = '<div class="card empty">아직 문제가 없어요.<br>“문제 관리” 탭에서 문제를 추가해보세요.</div>';
+      return;
+    }
+    if (currentIndex >= questions.length) currentIndex = questions.length - 1;
+    if (currentIndex < 0) currentIndex = 0;
+    var q = questions[currentIndex];
+    var pr = progress[q.id] || { text: '', graded: false };
+
+    var gradedCount = 0, scoreSum = 0;
+    questions.forEach(function (qq) {
+      var p = progress[qq.id];
+      if (p && p.graded) { gradedCount++; scoreSum += diffChars(p.text, qq.answer).score; }
+    });
+    var avg = gradedCount ? Math.round(scoreSum / gradedCount) : null;
+
+    var html = '';
+    html += '<div class="stats-line">채점 완료 ' + gradedCount + ' / ' + questions.length +
+      (avg !== null ? ' &middot; 평균 ' + avg + '점' : '') + '</div>';
+    html += '<div class="solve-layout">';
+
+    html += '<div class="q-list">';
+    questions.forEach(function (qq, idx) {
+      var p = progress[qq.id];
+      var scoreTag = '';
+      if (p && p.graded) {
+        var dd = diffChars(p.text, qq.answer);
+        scoreTag = '<span class="q-list-score ' + (dd.score >= 80 ? 'good' : 'bad') + '">' + dd.score + '</span>';
+      }
+      html += '<button class="q-list-item' + (idx === currentIndex ? ' active' : '') + '" data-idx="' + idx + '">' +
+        '<span class="q-list-num">' + (idx + 1) + '</span>' +
+        '<span class="q-list-text">' + escapeHtml(truncate(qq.question, 26)) + '</span>' +
+        scoreTag +
+        '</button>';
+    });
+    html += '</div>';
+
+    html += '<div class="q-main">';
+    html += '<div class="card">';
+    html += '<div class="progress-line"><span>문제 ' + (currentIndex + 1) + ' / ' + questions.length + '</span></div>';
+    if (q.category) html += '<div class="cat-badge">' + escapeHtml(q.category) + '</div>';
+    html += '<p class="q-text">' + escapeHtml(q.question) + '</p>';
+    html += '<textarea id="answerInput" placeholder="답을 입력하세요...">' + escapeHtml(pr.text || '') + '</textarea>';
+    html += '<div class="btn-row">';
+    html += '<button class="btn primary" id="gradeBtn">채점</button>';
+    html += '<button class="btn ghost" id="retryBtn">다시 풀기</button>';
+    html += '</div>';
+
+    if (pr.graded) {
+      var d = diffChars(pr.text, q.answer);
+      html += '<div class="result">';
+      html += '<div class="result-head"><span class="label" style="margin:0">채점 결과</span>' +
+        '<span class="score-badge ' + (d.score >= 80 ? 'good' : 'bad') + '">' + d.score + '점</span></div>';
+      html += '<div class="label">내 답안 (틀린 부분 빨간색)</div>';
+      html += '<div class="diff-box">' + (d.segs.length ? renderDiffHtml(d.segs) : '<span class="wrong">(답을 입력하지 않았어요)</span>') + '</div>';
+      html += '<div class="label">정답</div>';
+      html += '<div class="answer-box">' + escapeHtml(q.answer) + '</div>';
+      html += '</div>';
+    }
+
+    html += '<div class="nav-row">';
+    html += '<button class="btn" id="prevBtn"' + (currentIndex === 0 ? ' disabled' : '') + '>&larr; 이전</button>';
+    html += '<button class="btn" id="nextBtn"' + (currentIndex === questions.length - 1 ? ' disabled' : '') + '>다음 &rarr;</button>';
+    html += '</div>';
+    html += '</div>'; // .card
+    html += '</div>'; // .q-main
+    html += '</div>'; // .solve-layout
+
+    el.innerHTML = html;
+
+    function saveDraft() {
+      var input = document.getElementById('answerInput');
+      if (!input) return;
+      progress[q.id] = progress[q.id] || {};
+      progress[q.id].text = input.value;
+      saveProgress(progress);
+    }
+
+    el.querySelectorAll('.q-list-item').forEach(function (btn) {
+      btn.onclick = function () {
+        saveDraft();
+        currentIndex = Number(btn.getAttribute('data-idx'));
+        renderSolve();
+      };
+    });
+
+    document.getElementById('gradeBtn').onclick = function () {
+      var text = document.getElementById('answerInput').value;
+      progress[q.id] = { text: text, graded: true };
+      saveProgress(progress);
+      renderSolve();
+    };
+    document.getElementById('retryBtn').onclick = function () {
+      progress[q.id] = { text: '', graded: false };
+      saveProgress(progress);
+      renderSolve();
+    };
+    document.getElementById('prevBtn').onclick = function () {
+      var text = document.getElementById('answerInput').value;
+      progress[q.id] = progress[q.id] || {};
+      progress[q.id].text = text;
+      saveProgress(progress);
+      currentIndex--; renderSolve();
+    };
+    document.getElementById('nextBtn').onclick = function () {
+      var text = document.getElementById('answerInput').value;
+      progress[q.id] = progress[q.id] || {};
+      progress[q.id].text = text;
+      saveProgress(progress);
+      currentIndex++; renderSolve();
+    };
+    document.getElementById('answerInput').addEventListener('input', function (e) {
+      progress[q.id] = progress[q.id] || {};
+      progress[q.id].text = e.target.value;
+      progress[q.id].graded = false;
+      saveProgress(progress);
+    });
+  }
+
+  // ---------- manage view ----------
+  function renderManage() {
+    var el = document.getElementById('manageView');
+    var html = '';
+    html += '<div class="toolbar">';
+    html += '<button class="btn primary" id="addBtn">+ 새 문제 추가</button>';
+    html += '<button class="btn" id="exportBtn">내보내기</button>';
+    html += '<button class="btn" id="importBtn">불러오기</button>';
+    html += '</div>';
+
+    if (!questions.length) {
+      html += '<div class="card empty">문제가 없어요. 위 버튼으로 추가해보세요.</div>';
+    }
+
+    questions.forEach(function (q, idx) {
+      html += '<div class="manage-item" data-id="' + q.id + '">';
+      html += '<p class="field-label">분류(선택)</p>';
+      html += '<input type="text" class="f-category" value="' + escapeHtml(q.category || '') + '" placeholder="예: 감사기준서 200" />';
+      html += '<p class="field-label">문제</p>';
+      html += '<textarea class="f-question">' + escapeHtml(q.question) + '</textarea>';
+      html += '<p class="field-label">정답</p>';
+      html += '<textarea class="f-answer">' + escapeHtml(q.answer) + '</textarea>';
+      html += '<div class="manage-actions">';
+      html += '<button class="btn danger" data-action="delete">삭제</button>';
+      html += '<button class="btn primary" data-action="save">저장</button>';
+      html += '</div>';
+      html += '</div>';
+    });
+
+    el.innerHTML = html;
+
+    document.getElementById('addBtn').onclick = function () {
+      var q = { id: nextId(), category: '', question: '', answer: '' };
+      questions.unshift(q);
+      saveQuestions(questions);
+      renderManage();
+    };
+    document.getElementById('exportBtn').onclick = function () {
+      exportQuestions();
+    };
+    document.getElementById('importBtn').onclick = function () {
+      document.getElementById('importFile').click();
+    };
+
+    el.querySelectorAll('.manage-item').forEach(function (item) {
+      var id = Number(item.getAttribute('data-id'));
+      item.querySelector('[data-action="save"]').onclick = function () {
+        var q = questions.find(function (x) { return x.id === id; });
+        if (!q) return;
+        q.category = item.querySelector('.f-category').value.trim();
+        q.question = item.querySelector('.f-question').value.trim();
+        q.answer = item.querySelector('.f-answer').value.trim();
+        saveQuestions(questions);
+        showToast('저장했어요');
+      };
+      item.querySelector('[data-action="delete"]').onclick = function () {
+        if (!confirm('이 문제를 삭제할까요?')) return;
+        questions = questions.filter(function (x) { return x.id !== id; });
+        delete progress[id];
+        saveQuestions(questions);
+        saveProgress(progress);
+        renderManage();
+      };
+    });
+  }
+
+  function exportQuestions() {
+    var data = JSON.stringify(questions, null, 2);
+    if (window.claude && window.claude.downloads) {
+      window.claude.downloads.save({ filename: 'audit-quiz-questions.json', data: data })
+        .then(function () { showToast('다운로드했어요'); })
+        .catch(function () { showToast('다운로드가 취소됐어요'); });
+    } else {
+      showToast('다운로드를 사용할 수 없어요');
+    }
+  }
+
+  document.getElementById('importFile').addEventListener('change', function (e) {
+    var file = e.target.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function () {
+      try {
+        var data = JSON.parse(reader.result);
+        if (!Array.isArray(data)) throw new Error('bad format');
+        var added = 0;
+        data.forEach(function (item) {
+          if (!item || typeof item.question !== 'string' || typeof item.answer !== 'string') return;
+          questions.push({
+            id: nextId(),
+            category: item.category || '',
+            question: item.question,
+            answer: item.answer
+          });
+          added++;
+        });
+        saveQuestions(questions);
+        renderManage();
+        showToast(added + '개 문제를 불러왔어요');
+      } catch (err) {
+        showToast('파일을 읽을 수 없어요 (JSON 형식 확인)');
+      }
+      e.target.value = '';
+    };
+    reader.readAsText(file);
+  });
+
+  // ---------- tabs ----------
+  function setTab(name) {
+    document.querySelectorAll('.tab-btn').forEach(function (b) {
+      b.classList.toggle('active', b.getAttribute('data-tab') === name);
+    });
+    document.getElementById('topHeader').style.display = name === 'home' ? 'none' : '';
+    document.getElementById('homeView').style.display = name === 'home' ? '' : 'none';
+    document.getElementById('solveView').style.display = name === 'solve' ? '' : 'none';
+    document.getElementById('manageView').style.display = name === 'manage' ? '' : 'none';
+    if (name === 'solve') renderSolve();
+    else if (name === 'manage') renderManage();
+  }
+  document.querySelectorAll('.tab-btn').forEach(function (b) {
+    b.addEventListener('click', function () { setTab(b.getAttribute('data-tab')); });
+  });
+  document.getElementById('goQuizBtn').addEventListener('click', function () { setTab('solve'); });
+  document.getElementById('goManageBtn').addEventListener('click', function () { setTab('manage'); });
+  document.getElementById('headerTitle').addEventListener('click', function () { setTab('home'); });
+
+  setTab('home');
+})();
+</script>
