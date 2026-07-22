@@ -784,6 +784,8 @@
   // ---------- solve view ----------
   function renderSolve() {
     var el = document.getElementById('solveView');
+    var prevListEl = el.querySelector('.q-list');
+    var prevScrollTop = prevListEl ? prevListEl.scrollTop : 0;
     if (!questions.length) {
       el.innerHTML = '<div class="card empty">아직 문제가 없어요.<br>“문제 관리” 탭에서 문제를 추가해보세요.</div>';
       return;
@@ -854,8 +856,8 @@
 
     el.innerHTML = html;
 
-    var activeListItem = el.querySelector('.q-list-item.active');
-    if (activeListItem) activeListItem.scrollIntoView({ block: 'nearest' });
+    var newListEl = el.querySelector('.q-list');
+    if (newListEl) newListEl.scrollTop = prevScrollTop;
 
     function saveDraft() {
       var input = document.getElementById('answerInput');
